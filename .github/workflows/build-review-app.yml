@@ -6,8 +6,8 @@ on:
 
 env:
   ECR_REPO: fleet-ecr
-  PROJECT: todos # request-bin
-  SERVER_PATH: bin/ # server/
+  PROJECT: todo-app # request-bin
+  SERVER_PATH: ./ # server/
   SQL_FILE: db/setup.sql # server/db/migration.sql
   BUILDER: paketobuildpacks/builder:base # paketobuildpacks/builder:base
   DB_NAME: todos_db # request_bin

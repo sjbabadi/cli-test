@@ -5,7 +5,7 @@ on:
 
 env:
   ECR_REPO: fleet-ecr
-  PROJECT: todos # request-bin
+  PROJECT: todo-app # request-bin
   SUBNET_NAME: fleet-apps # Fleet-Subnet
   SG_NAME: fleet-apps-cluster # Fleet-Security-3
   FS_TOKEN: fleet-apps # FleetFS
