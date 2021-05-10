@@ -11,6 +11,7 @@ runs:
           aws efs create-access-point \
             --client-token $PROJECT-$PR_NUMBER-data \
             --file-system-id $FS_ID \
+            --tags Key=GanderApps,Value=four_eyes \
             --root-directory "Path=/$PROJECT-$PR_NUMBER/data,CreationInfo={OwnerUid=0,OwnerGid=0,Permissions=777}" \
             --query 'AccessPointId' \
             --output text \
@@ -45,6 +46,10 @@ runs:
                   "value": "password2"
                 },
                 {
+                  "name": "PG_HOST",
+                  "value": "localhost"
+                },
+                {
                   "name": "PORT",
                   "value": "8080"
                 }
@@ -54,7 +59,7 @@ runs:
                 "options": {
                   "awslogs-create-group": "true",
                   "awslogs-region": "$REGION",
-                  "awslogs-group": "fleet-logs-$PROJECT-api",
+                  "awslogs-group": "gander-logs-$PROJECT-api",
                   "awslogs-stream-prefix": "$PROJECT"
                 }
               },
@@ -106,7 +111,7 @@ runs:
                 "options": {
                   "awslogs-create-group": "true",
                   "awslogs-region": "$REGION",
-                  "awslogs-group": "fleet-logs-$PROJECT-db",
+                  "awslogs-group": "gander-logs-$PROJECT-db",
                   "awslogs-stream-prefix": "$PROJECT"
                 }
               },
@@ -149,6 +154,7 @@ runs:
 
         echo "APP_TASK_DEF=$(aws ecs register-task-definition \
         --family $PROJECT-$PR_NUMBER \
+        --tags key=GanderApps,value=four_eyes \
         --cli-input-json file://app-task.json \
         --query 'join(`:`,taskDefinition.[family,to_string(revision)])' \
         --output text)" >> $GITHUB_ENV
@@ -158,14 +164,15 @@ runs:
         echo "Creating Target Group"
 
         VPC_ID=$(aws ec2 describe-vpcs \
-        --filters Name=tag:Name,Values=fleet-apps \
+        --filters Name=tag:Name,Values=gander-apps \
         --query 'Vpcs[0].VpcId' \
         --output text)
-        
+
         TARGET_GROUP_ARN=$(aws elbv2 create-target-group \
-        --name Fleet-$PROJECT-$PR_NUMBER \
+        --name Gander-$PROJECT-$PR_NUMBER \
         --vpc-id $VPC_ID \
         --protocol HTTP \
+        --tags Key=GanderApps,Value=four_eyes \
         --port 8080 \
         --target-type ip \
         --query 'TargetGroups[0].TargetGroupArn' \
@@ -174,7 +181,7 @@ runs:
         echo "Creating Rule"
 
         ALB_ARN=$(aws elbv2 describe-load-balancers \
-        --query 'LoadBalancers[?LoadBalancerName==`fleet-apps`] | [0].LoadBalancerArn' \
+        --query 'LoadBalancers[?LoadBalancerName==`gander-apps`] | [0].LoadBalancerArn' \
         --output text)
 
         LISTENER_ARN=$(aws elbv2 describe-listeners \
@@ -186,7 +193,7 @@ runs:
         [
           {
             "Field": "host-header",
-            "Values": ["$PROJECT-$PR_NUMBER.staging.$USER_DOMAIN"]
+            "Values": ["$PROJECT-$PR_NUMBER.gander.$USER_DOMAIN"]
           }
         ]
         RULES
@@ -195,13 +202,10 @@ runs:
         --listener-arn $LISTENER_ARN \
         --conditions file://./rules-conditions.json \
         --priority $PR_NUMBER \
+        --tags Key=GanderApps,Value=four_eyes \
         --actions Type=forward,TargetGroupArn=$TARGET_GROUP_ARN \
         --query 'Rules[0].RuleArn' \
         --output text)
-
-        # aws rds add-tags-to-resource \
-        # --resource-name $RULE_ARN \
-        # --tags Key=Name,Value=$PROJECT-$PR_NUMBER
 
         echo "TARGET_GROUP_ARN=$TARGET_GROUP_ARN" >> $GITHUB_ENV
       shell: bash
@@ -213,6 +217,7 @@ runs:
           --service-name $PROJECT-$PR_NUMBER-$GITHUB_SHA \
           --task-definition $APP_TASK_DEF \
           --desired-count 1 \
+          --tags key=GanderApps,value=four_eyes \
           --launch-type FARGATE \
           --network-configuration "awsvpcConfiguration={ \
               subnets=[$SUBNET_ID], \
@@ -228,7 +233,6 @@ runs:
         aws ecs wait services-stable \
           --cluster $PROJECT \
           --services $PROJECT-$PR_NUMBER-$GITHUB_SHA
-        
-        echo "PUBLIC_URL=$PROJECT-$PR_NUMBER.staging.$USER_DOMAIN" >> $GITHUB_ENV
-      shell: bash
 
+        echo "PUBLIC_URL=$PROJECT-$PR_NUMBER.gander.$USER_DOMAIN" >> $GITHUB_ENV
+      shell: bash
