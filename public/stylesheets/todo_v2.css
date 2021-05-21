@@ -9,7 +9,7 @@ body {
 }
 #sidebar {
   width: 335px;
-  background: #ee6f57;
+  background: #6bc7b1;
   float: left;
   color: rgba(255, 255, 255, 0.5);
   padding: 70px 0 100% 0;
@@ -45,13 +45,13 @@ header dd {
 }
 #sidebar header dt {
   font-size: 18px;
-  color: #ffffff;
+  color: #260c1a;
   margin-right: 60px;
 }
 
 #sidebar #completed_todos header dt {
   font-size: 18px;
-  color: #ffffff;
+  color: #260c1a;
   margin-right: 48px;
 }
 #sidebar header dd {
@@ -83,13 +83,13 @@ article dd {
 }
 #sidebar header.active {
   background-color: #260c1a;
-  /*color: #F6F5F5;*/
+  /*color: #f6f5f5;*/
   margin-left: 0px;
   background-position: 100px center;
 }
 #sidebar header.active dl {
   /*background-color: #260C1A;*/
-  /*color: #F6F5F5;*/
+  /*color: #f6f5f5;*/
   margin-left: 100px;
 }
 
